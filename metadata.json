@@ -1,0 +1,5 @@
+{
+  "name": "Channel Dissector AI",
+  "description": "A deep-dive analysis tool for YouTube channels that generates topic graphs and critical rebuttal presentations.",
+  "requestFramePermissions": []
+}
