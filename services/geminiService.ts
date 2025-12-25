@@ -325,31 +325,32 @@ export const generateRebuttal = async (
 
   // Updated Prompt for Higher Quality Content
   const prompt = `
-    Role: You are a world-class Logician, Scientist, and Debate Coach.
-    Target: We are conducting a critical forensic analysis of the YouTube channel ${channelUrl}.
+    Role: You are an elite Epistemologist, Investigative Journalist, and Logic Professor. 
+    Target: We are conducting a high-level forensic deconstruction of the YouTube channel ${channelUrl}.
     
     Context Data:
     - Channel Worldview: ${graphSummary}
     - Top Videos: ${safeVideos.map(v => v.title).slice(0, 5).join(", ")}.
-    - User Custom Direction: "${customInstructions || 'Adopt a tone of rigorous, empirical scientific skepticism. Dismantle pseudoscience.'}"
+    - User Custom Direction: "${customInstructions || 'Adopt a tone of rigorous, empirical scientific skepticism. Dismantle pseudoscience and logical leaps.'}"
 
     Objective:
     Generate a 5-slide "Deep Dive & Rebuttal" presentation.
-    The goal is NOT just to disagree, but to *steelman* the creator's best arguments and then dismantle them with superior evidence, logic, and epistemological clarity.
+    Your goal is to perform a "steelmanning" operation: First, articulate the creator's arguments *better than they do*, then dismantle them with superior evidence, first-principles logic, and epistemological clarity.
     
-    Research Phase:
-    Use Google Search to find specific claims, quotes, or controversial statements made in these videos or by this creator. 
-    Accuracy is paramount. Do not hallucinate claims.
+    Research Phase (Use Google Search):
+    1. Find specific, direct quotes or core thesis statements from these videos.
+    2. Identify the underlying axioms or "hidden premises" this channel relies on.
+    3. Find high-quality counter-evidence (scientific consensus, historical data, logical contradictions).
     
-    Slide Structure Requirements:
-    1. **Title**: Punchy, academic, or provocative.
-    2. **Bullet Points**: 3-4 items.
-       - Must include at least one "Direct Claim" (quoted or closely paraphrased).
-       - Must include the "Hidden Premise" or logical fallacy underlying that claim.
-       - Must include a "Counter-Evidence" point.
-    3. **Rebuttal**: A dense, high-impact paragraph (approx 4-6 sentences). Avoid generic dismissals. Use specific counter-examples, concrete scientific data, or logical contradictions.
-    4. **Visual Prompt**: A creative, abstract art prompt to generate a background image for this slide. e.g. 'Abstract geometric shapes colliding, dark blue and red neon lighting, cyberpunk style'.
-    5. **Speaker Notes**: A script for the presenter to deliver this slide with authority and charisma. (Approx 50-75 words).
+    Slide Structure Requirements (Strict Adherence):
+    1. **Title**: Use a "Dialectical" style (e.g., "The Myth of X," "Correlation vs Causation," "The Naturalistic Fallacy").
+    2. **Bullet Points**: Exactly 3 items per slide, structured strictly as follows (include the labels):
+       - "The Claim: [Insert a specific, recognizable argument or quote from the channel]"
+       - "The Mechanism: [Briefly explain the rhetorical device or logical error used]"
+       - "The Reality: [A hard-hitting fact or logical axiom that contradicts the claim]"
+    3. **Rebuttal**: A dense, high-impact paragraph (approx 80-100 words). Do not use fluff. Cite specific concepts, fallacies (e.g., Motte-and-Bailey, Gish Gallop), or scientific principles. Address the *nuance*—why is the argument compelling, and why is it ultimately wrong?
+    4. **Visual Prompt**: A creative, abstract art prompt for a background image. It should be metaphorical and visually striking (e.g., "A golden cage representing ideological capture, cinematic lighting").
+    5. **Speaker Notes**: A script for the presenter. Tone: Charismatic, authoritative, yet fair. Use rhetorical questions. (Approx 100 words).
 
     Output Format:
     Return a JSON object with a "slides" array.
@@ -360,8 +361,8 @@ export const generateRebuttal = async (
     contents: prompt,
     config: {
       tools: [{ googleSearch: {} }], 
-      // Use Thinking Config for complex reasoning
-      thinkingConfig: { thinkingBudget: 4096 },
+      // Use Thinking Config for complex reasoning. Increased budget for better quality.
+      thinkingConfig: { thinkingBudget: 8192 },
       responseMimeType: "application/json",
        responseSchema: {
         type: Type.OBJECT,

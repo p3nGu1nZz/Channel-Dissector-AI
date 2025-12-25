@@ -32,14 +32,6 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ data, onNodeClick, onNodeDouble
       });
 
     svg.call(zoom);
-
-    // Initial center
-    if (containerRef.current) {
-        const width = containerRef.current.clientWidth;
-        const height = containerRef.current.clientHeight;
-        svg.call(zoom.transform, d3.zoomIdentity.translate(width/2, height/2).scale(0.8));
-    }
-
   }, []);
 
   // Zoom Helpers
@@ -66,17 +58,27 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ data, onNodeClick, onNodeDouble
     const g = d3.select(zoomGroupRef.current);
     g.selectAll("*").remove(); // Clear previous render within zoom group
 
-    // 1. Create fresh copies to avoid mutating props and to handle clean D3 initialization
-    // D3 modifies the objects passed to it (adding x, y, vx, vy, etc.)
-    const nodes = data.nodes.map(d => ({ ...d })) as d3.SimulationNodeDatum[];
-    
-    // 2. Ensure links use IDs for source/target so D3 resolves them to the NEW 'nodes' array
-    // This fixes issues where imported data has object references to non-existent/stale nodes
-    const links = data.links.map((d: any) => ({
+    // --- DATA SANITIZATION ---
+    // 1. Convert all IDs to strings to prevent Type mismatches (Number vs String) from import parsers
+    const validNodeIds = new Set(data.nodes.map(n => String(n.id)));
+
+    const nodes = data.nodes.map(d => ({ 
       ...d,
-      source: typeof d.source === 'object' ? d.source.id : d.source,
-      target: typeof d.target === 'object' ? d.target.id : d.target
-    }));
+      id: String(d.id) 
+    })) as d3.SimulationNodeDatum[];
+    
+    // 2. Map links to use String IDs and FILTER out orphans (links to missing nodes)
+    // This is critical for preventing "exploded" graphs where edges connect to (0,0)
+    const links = data.links
+      .map((d: any) => ({
+        ...d,
+        source: typeof d.source === 'object' ? String(d.source.id) : String(d.source),
+        target: typeof d.target === 'object' ? String(d.target.id) : String(d.target)
+      }))
+      .filter(d => validNodeIds.has(d.source) && validNodeIds.has(d.target));
+
+    // Reset zoom to center on data load
+    handleResetZoom();
 
     // Color scale based on groups
     const colorScale = d3.scaleOrdinal<number, string>()
@@ -193,7 +195,7 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ data, onNodeClick, onNodeDouble
     if (hoveredNode) {
         // Calculate neighbors
         const neighborIds = new Set<string>();
-        neighborIds.add(hoveredNode.id);
+        neighborIds.add(String(hoveredNode.id)); // Ensure ID comparison is string-safe
 
         const connectedLinks = new Set<any>();
 
@@ -201,13 +203,14 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ data, onNodeClick, onNodeDouble
         // Note: D3 replaces source/target string IDs with object references during simulation
         // The data in 'links' selection is the mutated data from simulation
         links.each((d: any) => {
-             const sId = d.source.id || d.source;
-             const tId = d.target.id || d.target;
+             // Safe extraction of IDs whether they are objects or strings
+             const sId = typeof d.source === 'object' ? String(d.source.id) : String(d.source);
+             const tId = typeof d.target === 'object' ? String(d.target.id) : String(d.target);
             
-             if (sId === hoveredNode.id) {
+             if (sId === String(hoveredNode.id)) {
                 neighborIds.add(tId);
                 connectedLinks.add(d);
-             } else if (tId === hoveredNode.id) {
+             } else if (tId === String(hoveredNode.id)) {
                 neighborIds.add(sId);
                 connectedLinks.add(d);
              }
@@ -215,17 +218,17 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ data, onNodeClick, onNodeDouble
 
         // Dim everything unrelated
         nodes.transition().duration(200)
-            .style("opacity", (d: any) => neighborIds.has(d.id) ? 1 : 0.1)
-            .attr("stroke", (d: any) => d.id === hoveredNode.id ? COLORS.accent : "#18181b")
-            .attr("stroke-width", (d: any) => d.id === hoveredNode.id ? 4 : 2)
-            .attr("filter", (d: any) => d.id === hoveredNode.id ? "drop-shadow(0px 0px 8px rgba(244, 63, 94, 0.5))" : null);
+            .style("opacity", (d: any) => neighborIds.has(String(d.id)) ? 1 : 0.1)
+            .attr("stroke", (d: any) => String(d.id) === String(hoveredNode.id) ? COLORS.accent : "#18181b")
+            .attr("stroke-width", (d: any) => String(d.id) === String(hoveredNode.id) ? 4 : 2)
+            .attr("filter", (d: any) => String(d.id) === String(hoveredNode.id) ? "drop-shadow(0px 0px 8px rgba(244, 63, 94, 0.5))" : null);
 
         links.transition().duration(200)
             .style("opacity", (d: any) => connectedLinks.has(d) ? 1 : 0.05)
             .attr("stroke", (d: any) => connectedLinks.has(d) ? "#e4e4e7" : "#52525b");
 
         labels.transition().duration(200)
-            .style("opacity", (d: any) => neighborIds.has(d.id) ? 1 : 0.1);
+            .style("opacity", (d: any) => neighborIds.has(String(d.id)) ? 1 : 0.1);
 
     } else {
         // Reset to default
@@ -244,7 +247,7 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ data, onNodeClick, onNodeDouble
             .style("opacity", 1);
     }
 
-  }, [hoveredNode]); // Removed 'data' dependency to prevent re-triggering on prop change if state is managed internally
+  }, [hoveredNode]); 
 
 
   // Drag behavior

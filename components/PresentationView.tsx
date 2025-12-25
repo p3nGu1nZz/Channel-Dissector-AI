@@ -112,7 +112,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ data, onClose }) =>
            {/* Slide Content Container */}
            <div 
              key={currentSlideIndex}
-             className="w-full max-w-5xl aspect-video relative flex flex-col justify-between animate-in slide-in-from-right-8 fade-in duration-500"
+             className="w-full max-w-6xl aspect-video relative flex flex-col justify-between animate-in slide-in-from-right-8 fade-in duration-500"
            >
               {/* Decorative Header Element */}
               <div className="mb-8 border-l-4 border-rose-500 pl-6">
@@ -120,26 +120,38 @@ const PresentationView: React.FC<PresentationViewProps> = ({ data, onClose }) =>
                     <SlideIcon className="w-4 h-4" />
                     <span>Analysis Module {currentSlideIndex + 1}</span>
                 </div>
-                <h2 className="text-4xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-lg max-w-3xl">
+                <h2 className="text-4xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-lg max-w-4xl">
                     {currentSlide.title || "Untitled Slide"}
                 </h2>
               </div>
 
               {/* Body Content */}
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-12 flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-12 flex-1 items-start">
                 <div className="md:col-span-3 space-y-6">
-                    {currentSlide.bulletPoints && currentSlide.bulletPoints.map((point, idx) => (
+                    {currentSlide.bulletPoints && currentSlide.bulletPoints.map((point, idx) => {
+                        const hasLabel = point.includes(":");
+                        const label = hasLabel ? point.split(":")[0] : "";
+                        const content = hasLabel ? point.substring(point.indexOf(":") + 1) : point;
+                        
+                        return (
                         <div key={idx} className="flex gap-4 group">
-                            <div className="mt-1.5 w-2 h-2 rounded-full bg-blue-500 group-hover:bg-blue-400 transition-colors shadow-[0_0_10px_rgba(59,130,246,0.5)] shrink-0" />
-                            <p className="text-xl text-zinc-200 font-light leading-relaxed group-hover:text-white transition-colors">
-                                {point}
+                            <div className="mt-2 w-2 h-2 rounded-full bg-blue-500 group-hover:bg-blue-400 transition-colors shadow-[0_0_10px_rgba(59,130,246,0.5)] shrink-0" />
+                            <p className="text-lg md:text-xl text-zinc-200 font-light leading-relaxed group-hover:text-white transition-colors">
+                                {hasLabel ? (
+                                    <>
+                                        <span className="font-bold text-blue-400 tracking-wide">{label}:</span>
+                                        <span>{content}</span>
+                                    </>
+                                ) : (
+                                    point
+                                )}
                             </p>
                         </div>
-                    ))}
+                    )})}
                 </div>
 
                 {/* Right Side / Rebuttal Box */}
-                <div className="md:col-span-2 flex flex-col justify-end">
+                <div className="md:col-span-2 flex flex-col justify-end h-full">
                     {currentSlide.rebuttal && (
                         <div className="bg-zinc-900/40 backdrop-blur-md border border-zinc-700/50 p-6 rounded-xl relative overflow-hidden group">
                            <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-rose-500 to-purple-600" />
@@ -148,7 +160,7 @@ const PresentationView: React.FC<PresentationViewProps> = ({ data, onClose }) =>
                            <h3 className="text-xs font-bold text-rose-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                              <ShieldAlert className="w-4 h-4" /> Rebuttal Strategy
                            </h3>
-                           <p className="text-zinc-300 italic text-sm md:text-sm leading-relaxed border-l-2 border-zinc-700 pl-4">
+                           <p className="text-zinc-200 italic text-sm md:text-base leading-loose border-l-2 border-zinc-700 pl-4">
                              "{currentSlide.rebuttal}"
                            </p>
                         </div>

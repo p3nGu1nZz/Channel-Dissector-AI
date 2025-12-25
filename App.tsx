@@ -132,9 +132,10 @@ const App: React.FC = () => {
                 longDescription: node.longDescription || ""
             })),
             // Explicitly map links to IDs to avoid circular structure objects from D3
+            // AND ensure strict string conversion if it is a primitive, to match Node IDs
             links: graphData.links.map(link => ({
-                source: (link.source as any).id || link.source,
-                target: (link.target as any).id || link.target,
+                source: typeof link.source === 'object' ? String((link.source as any).id) : String(link.source),
+                target: typeof link.target === 'object' ? String((link.target as any).id) : String(link.target),
                 value: link.value
             }))
         };
